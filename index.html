@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <title>App de Links</title>
+    <style>
+      /* Reset and transparent background */
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: transparent;
+        font-family: Arial, sans-serif;
+        color: white;
+        user-select: none;
+        -webkit-user-select: none;
+        height: 100%;
+        overflow: hidden;
+      }
+
+      /* Main container (the inner content background is set via JS for opacity) */
+      .container {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        background-color: rgba(30, 30, 30, 1); /* opacidade controlada via JS */
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+      }
+
+      /* Title bar with drag enabled */
+      .title-bar {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 16px;
+        background-color: rgba(30, 30, 30, 1);
+        -webkit-app-region: drag;
+        z-index: 10;
+      }
+
+      /* Ensure interactive elements inside title-bar are not draggable */
+      .menu-button,
+      .window-controls {
+        -webkit-app-region: no-drag;
+      }
+
+      /* Menu button styling */
+      .menu-button {
+        font-size: 20px;
+        background: none;
+        border: none;
+        color: white;
+        cursor: pointer;
+      }
+
+      /* Window controls styling */
+      .window-controls {
+        display: flex;
+        gap: 10px;
+      }
+
+      .btn {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        cursor: pointer;
+      }
+
+      .btn.close {
+        background: #ff5f57;
+      }
+
+      .btn.minimize {
+        background: #ffbd2e;
+      }
+
+      /* Clock styling */
+      .clock {
+        font-size: 48px;
+        margin: 30px 0 20px;
+        text-align: center;
+        pointer-events: none;
+      }
+
+      /* Links styling */
+      .links {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: 0 20px;
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      .links a {
+        text-decoration: none;
+        color: white;
+        background: rgba(255, 255, 255, 0.1);
+        padding: 10px 20px;
+        border-radius: 10px;
+        -webkit-app-region: no-drag;
+        transition: background 0.3s ease;
+      }
+
+      .links a:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+
+      /* Sidebar styling */
+      .sidebar {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 250px;
+        height: 100%;
+        background: rgba(46, 46, 46, 1);
+        backdrop-filter: blur(10px);
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        padding: 20px;
+        z-index: 100;
+        -webkit-app-region: no-drag;
+      }
+
+      .sidebar.visible {
+        transform: translateX(0);
+      }
+
+      /* Opacity control */
+      .opacity-control {
+        margin-top: 30px;
+        color: white;
+        font-size: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+
+      input[type="range"] {
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Sidebar with options -->
+    <div class="sidebar" id="sidebar">
+      <h3>Opções</h3>
+      <div>
+        <button onclick="selectThemeImage()">➕ Criar Tema</button>
+      </div>
+      <div class="opacity-control">
+        <label for="opacityRange">Opacidade:</label>
+        <input
+          type="range"
+          id="opacityRange"
+          min="0.1"
+          max="1"
+          step="0.01"
+          value="1"
+        />
+      </div>
+    </div>
+
+    <!-- Main container -->
+    <div class="container">
+      <!-- Title bar -->
+      <div class="title-bar">
+        <div class="menu-button" onclick="toggleMenu()">☰</div>
+        <div class="window-controls">
+          <div class="btn minimize" onclick="windowControls.minimize()"></div>
+          <div class="btn close" onclick="windowControls.close()"></div>
+        </div>
+      </div>
+
+      <!-- Clock display -->
+      <div class="clock" id="clock">00:00:00</div>
+
+      <!-- Useful links -->
+      <div class="links">
+        <a href="https://google.com" target="_blank">Google</a>
+        <a href="https://youtube.com" target="_blank">YouTube</a>
+        <a href="file:///usr/bin/gnome-terminal">Terminal</a>
+      </div>
+    </div>
+
+    <script>
+      // Update clock every second
+      function updateClock() {
+        const now = new Date();
+        document.getElementById("clock").textContent = now.toLocaleTimeString();
+      }
+      setInterval(updateClock, 1000);
+      updateClock();
+
+      // Toggle sidebar visibility
+      function toggleMenu() {
+        const sidebar = document.getElementById("sidebar");
+        sidebar.classList.toggle("visible");
+      }
+
+      // Close sidebar when clicking outside of it
+      document.addEventListener("mousedown", (e) => {
+        const sidebar = document.getElementById("sidebar");
+        const menuBtn = document.querySelector(".menu-button");
+        if (
+          sidebar.classList.contains("visible") &&
+          !sidebar.contains(e.target) &&
+          !menuBtn.contains(e.target)
+        ) {
+          sidebar.classList.remove("visible");
+        }
+      });
+
+      // Control background opacity of inner elements
+      document
+        .getElementById("opacityRange")
+        .addEventListener("input", function (e) {
+          const opacity = parseFloat(e.target.value);
+          const container = document.querySelector(".container");
+          container.style.backgroundColor = `rgba(30, 30, 30, ${opacity})`;
+
+          // Também aplicar na sidebar e title bar como antes
+          document.querySelector(
+            ".title-bar"
+          ).style.backgroundColor = `rgba(30, 30, 30, ${opacity})`;
+          document.querySelector(
+            ".sidebar"
+          ).style.backgroundColor = `rgba(46, 46, 46, ${opacity})`;
+        });
+
+      // Window controls via IPC
+      const { ipcRenderer } = require("electron");
+      const windowControls = {
+        minimize() {
+          ipcRenderer.send("minimize-window");
+        },
+        close() {
+          ipcRenderer.send("close-window");
+        },
+      };
+
+      async function selectThemeImage() {
+        const filePath = await ipcRenderer.invoke("select-theme-image");
+
+        if (filePath) {
+          const container = document.querySelector(".container");
+
+          container.style.backgroundImage = `url("file://${filePath}")`;
+          container.style.backgroundSize = "cover";
+          container.style.backgroundRepeat = "no-repeat";
+          container.style.backgroundPosition = "center";
+        }
+      }
+    </script>
+  </body>
+</html>
